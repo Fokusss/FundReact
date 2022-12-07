@@ -1,8 +1,11 @@
 import { useMemo, useState } from "react";
 import Counter from "./components/Counter";
+import PostFilter from "./components/PostFilter";
 import PostForm from "./components/PostForm";
 import PostList from "./components/PostList";
+import MyButton from "./components/UI/button/MyButton";
 import MyInput from "./components/UI/input/MyInput";
+import MyModal from "./components/UI/MyModal/MyModal";
 import MySelect from "./components/UI/select/MySelect";
 
 
@@ -16,25 +19,27 @@ function App() {
     { id: 6, title: 'AName', text: 'PТекст' },
     { id: 7, title: 'BName', text: 'YТекст' },
   ])
-  const [selectSort, setSelectSort] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+
+  const [filter, setFilter] = useState({ sort: '', searchQuery: '' });
+  const [modal, setModal] = useState(false);
 
 
 
   const sortedPosts = useMemo(() => {
     console.log('Отработала функция getSortedPosts')
-    if (selectSort) {
-      return [...posts].sort((a, b) => a[selectSort].localeCompare(b[selectSort]))
+    if (filter.sort) {
+      return [...posts].sort((a, b) => a[filter.sort].localeCompare(b[filter.sort]))
     }
     return posts
-  }, [selectSort, posts]);
+  }, [filter.sort, posts]);
 
   const searchAndSortedPosts = useMemo(() => {
-    return sortedPosts.filter((post) => post.title.toLowerCase().includes(searchQuery.toLowerCase()))
-  }, [searchQuery, sortedPosts])
+    return sortedPosts.filter((post) => post.title.toLowerCase().includes(filter.searchQuery.toLowerCase()))
+  }, [filter.searchQuery, sortedPosts])
 
   const createPost = (post) => {
     setPosts([...posts, post]);
+    setModal(false)
   }
 
   const removePost = (post) => {
@@ -43,23 +48,15 @@ function App() {
 
   return (
     <div>
-      <PostForm create={createPost} />
-      <MyInput type='text' placeholder='Поиск' value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-      <MySelect
-        options={[
-          { value: 'title', name: 'По заголовку' },
-          { value: 'text', name: 'По тексту' }
-        ]}
-        defaultValue='Сортировка'
-        value={selectSort}
-        change={setSelectSort}
-      />
-      {searchAndSortedPosts.length !== 0
-        ?
-        <PostList posts={searchAndSortedPosts} remove={removePost} title='Посты' />
-        :
-        <h2 style={{ textAlign: 'center' }}>Посты не найдены!</h2>
-      }
+      <MyButton onClick={() => setModal(true)}>
+        Добавить пользователя
+      </MyButton>
+      <MyModal visable={modal} setVisable={setModal}>
+        <PostForm create={createPost} />
+      </MyModal>
+      <PostFilter filter={filter} setFilter={setFilter} />
+      <PostList posts={searchAndSortedPosts} remove={removePost} title='Посты' />
+
     </div>
   )
 }
