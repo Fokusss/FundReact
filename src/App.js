@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Counter from "./components/Counter";
 import PostForm from "./components/PostForm";
 import PostList from "./components/PostList";
@@ -16,6 +16,22 @@ function App() {
     { id: 6, title: 'AName', text: 'PТекст' },
     { id: 7, title: 'BName', text: 'YТекст' },
   ])
+  const [selectSort, setSelectSort] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+
+
+  const sortedPosts = useMemo(() => {
+    console.log('Отработала функция getSortedPosts')
+    if (selectSort) {
+      return [...posts].sort((a, b) => a[selectSort].localeCompare(b[selectSort]))
+    }
+    return posts
+  }, [selectSort, posts]);
+
+  const searchAndSortedPosts = useMemo(() => {
+    return sortedPosts.filter((post) => post.title.toLowerCase().includes(searchQuery.toLowerCase()))
+  }, [searchQuery, sortedPosts])
 
   const createPost = (post) => {
     setPosts([...posts, post]);
@@ -25,31 +41,22 @@ function App() {
     setPosts(posts.filter(p => p.id !== post.id))
   }
 
-  const [selectSort, setSelectSort] = useState('');
-
-  const sortPosts = (sort) => {
-    setSelectSort(sort)
-    setPosts([...posts].sort((a,b) => a[sort].localeCompare(b[sort])))
-  } 
-
-  const [search, setSearch] = useState('');
-
   return (
     <div>
       <PostForm create={createPost} />
-      <MyInput type='text' placeholder='Поиск' value={search} onChange={(e) => setSearch(e.target.value)} />
+      <MyInput type='text' placeholder='Поиск' value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
       <MySelect
         options={[
-          {value: 'title', name: 'По заголовку' },
-          {value: 'text', name: 'По тексту'}
+          { value: 'title', name: 'По заголовку' },
+          { value: 'text', name: 'По тексту' }
         ]}
         defaultValue='Сортировка'
         value={selectSort}
-        onChange={sortPosts}
+        change={setSelectSort}
       />
-      {posts.length !== 0
+      {searchAndSortedPosts.length !== 0
         ?
-        <PostList posts={posts} remove={removePost} title='Посты' />
+        <PostList posts={searchAndSortedPosts} remove={removePost} title='Посты' />
         :
         <h2 style={{ textAlign: 'center' }}>Посты не найдены!</h2>
       }
