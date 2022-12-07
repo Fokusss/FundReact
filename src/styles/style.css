@@ -12,7 +12,7 @@
 }
 
 .post {
-  margin: 15px 0 0 0;
+  margin: 15px auto 0 auto;
   width: 400px;
   border: 2px solid teal;
   display: flex;
@@ -28,3 +28,5 @@
 .description {
   font-size: 18px;
 }
+
+
