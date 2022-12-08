@@ -1,41 +1,27 @@
-import { useMemo, useState } from "react";
+import axios from "axios";
+import { useEffect, useMemo, useState } from "react";
+import PostService from "./API/PostService";
 import Counter from "./components/Counter";
+import { usePosts } from "./components/hooks/usePosts";
 import PostFilter from "./components/PostFilter";
 import PostForm from "./components/PostForm";
 import PostList from "./components/PostList";
 import MyButton from "./components/UI/button/MyButton";
 import MyInput from "./components/UI/input/MyInput";
+import Loader from "./components/UI/Loader/Loader";
 import MyModal from "./components/UI/MyModal/MyModal";
 import MySelect from "./components/UI/select/MySelect";
 
 
 function App() {
-  const [posts, setPosts] = useState([
-    { id: 1, title: 'JName', text: 'FТекст' },
-    { id: 2, title: 'GName', text: 'GТекст' },
-    { id: 3, title: 'FName', text: 'AТекст' },
-    { id: 4, title: 'LName', text: 'SТекст' },
-    { id: 5, title: 'TName', text: 'YТекст' },
-    { id: 6, title: 'AName', text: 'PТекст' },
-    { id: 7, title: 'BName', text: 'YТекст' },
-  ])
+  const [posts, setPosts] = useState([])
 
   const [filter, setFilter] = useState({ sort: '', searchQuery: '' });
   const [modal, setModal] = useState(false);
+  const [isPostsLoading, setPostsLoading] = useState(false)
 
+  const searchAndSortedPosts = usePosts(posts, filter.sort, filter.searchQuery);
 
-
-  const sortedPosts = useMemo(() => {
-    console.log('Отработала функция getSortedPosts')
-    if (filter.sort) {
-      return [...posts].sort((a, b) => a[filter.sort].localeCompare(b[filter.sort]))
-    }
-    return posts
-  }, [filter.sort, posts]);
-
-  const searchAndSortedPosts = useMemo(() => {
-    return sortedPosts.filter((post) => post.title.toLowerCase().includes(filter.searchQuery.toLowerCase()))
-  }, [filter.searchQuery, sortedPosts])
 
   const createPost = (post) => {
     setPosts([...posts, post]);
@@ -46,6 +32,22 @@ function App() {
     setPosts(posts.filter(p => p.id !== post.id))
   }
 
+  useEffect(() => {
+    fetshPosts()
+  }
+  
+  , []);
+
+  async function fetshPosts() {
+    setPostsLoading(true)
+    setTimeout(async () => {
+      const posts = await PostService.getAll();
+    console.log(posts)
+    setPosts(posts)
+    setPostsLoading(false)
+    }, 1000)
+  } 
+
   return (
     <div>
       <MyButton onClick={() => setModal(true)}>
@@ -55,7 +57,11 @@ function App() {
         <PostForm create={createPost} />
       </MyModal>
       <PostFilter filter={filter} setFilter={setFilter} />
-      <PostList posts={searchAndSortedPosts} remove={removePost} title='Посты' />
+      {
+        isPostsLoading 
+        ? <div style={{display: 'flex', display: 'flex',justifyContent: 'center',marginTop: 20}}><Loader/></div> 
+        : <PostList posts={searchAndSortedPosts} remove={removePost} title='Посты' />
+      }
 
     </div>
   )
